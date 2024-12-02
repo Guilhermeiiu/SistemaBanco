@@ -1,21 +1,16 @@
 <?php
-// Inclui a conexão com o banco de dados
 include 'db/conexao.php';
 
-// Inicializa variáveis para mensagens
 $mensagem = '';
 
-// Verifica se o formulário foi enviado
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $conta_origem = filter_input(INPUT_POST, 'conta_origem', FILTER_VALIDATE_INT);
     $conta_destino = filter_input(INPUT_POST, 'conta_destino', FILTER_VALIDATE_INT);
     $valor = filter_input(INPUT_POST, 'valor', FILTER_VALIDATE_FLOAT);
 
-    // Validação básica
     if ($conta_origem && $conta_destino && $valor > 0) {
-        // Busca os saldos das contas de origem e destino
         $sql_saldo = "SELECT numero, saldo FROM contas WHERE numero IN (?, ?)";
-        $stmt = $conn->prepare($sql_saldo);
+        $stmt = $conexao->prepare($sql_saldo);
         $stmt->bind_param("ii", $conta_origem, $conta_destino);
         $stmt->execute();
         $resultados = $stmt->get_result();
@@ -25,20 +20,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $contas[$linha['numero']] = $linha['saldo'];
         }
 
-        // Valida se ambas as contas existem
         if (isset($contas[$conta_origem]) && isset($contas[$conta_destino])) {
-            // Verifica saldo suficiente na conta de origem
             if ($contas[$conta_origem] >= $valor) {
-                // Atualiza o saldo da conta de origem
                 $novo_saldo_origem = $contas[$conta_origem] - $valor;
                 $sql_update_origem = "UPDATE contas SET saldo = ? WHERE numero = ?";
-                $stmt_origem = $conn->prepare($sql_update_origem);
+                $stmt_origem = $conexao->prepare($sql_update_origem);
                 $stmt_origem->bind_param("di", $novo_saldo_origem, $conta_origem);
 
-                // Atualiza o saldo da conta de destino
                 $novo_saldo_destino = $contas[$conta_destino] + $valor;
                 $sql_update_destino = "UPDATE contas SET saldo = ? WHERE numero = ?";
-                $stmt_destino = $conn->prepare($sql_update_destino);
+                $stmt_destino = $conexao->prepare($sql_update_destino);
                 $stmt_destino->bind_param("di", $novo_saldo_destino, $conta_destino);
 
                 if ($stmt_origem->execute() && $stmt_destino->execute()) {

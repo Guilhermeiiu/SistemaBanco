@@ -1,33 +1,28 @@
 <?php
-// Inclui a conexão com o banco de dados
 include 'db/conexao.php';
 
 
-// Inicializa variáveis
 $mensagem = '';
 
-// Verifica se o formulário foi enviado
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $numero_conta = filter_input(INPUT_POST, 'numero_conta', FILTER_VALIDATE_INT);
 
     if ($numero_conta) {
-        // Verifica se a conta existe no banco
         $sql_verifica = "SELECT * FROM contas WHERE numero = ?";
-        $stmt_verifica = $conn->prepare($sql_verifica);
+        $stmt_verifica = $conexao->prepare($sql_verifica);
         $stmt_verifica->bind_param("i", $numero_conta);
         $stmt_verifica->execute();
         $result = $stmt_verifica->get_result();
 
         if ($result->num_rows > 0) {
-            // Exclui a conta
             $sql = "DELETE FROM contas WHERE numero = ?";
-            $stmt = $conn->prepare($sql);
+            $stmt = $conexao->prepare($sql);
             $stmt->bind_param("i", $numero_conta);
 
             if ($stmt->execute()) {
                 $mensagem = "Conta de número $numero_conta excluída com sucesso!";
             } else {
-                $mensagem = "Erro ao excluir a conta: " . $conn->error;
+                $mensagem = "Erro ao excluir a conta: " . $conexao->error;
             }
 
             $stmt->close();

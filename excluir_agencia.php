@@ -1,46 +1,43 @@
 <?php
-// Inclui a conexão com o banco de dados
 include 'db/conexao.php';
 
-// Inicializa variáveis
 $mensagem = '';
 
-// Verifica se o número da agência foi passado pela URL
 if (isset($_GET['numero_agencia'])) {
     $numero_agencia = filter_input(INPUT_GET, 'numero_agencia', FILTER_VALIDATE_INT);
 
     if ($numero_agencia) {
-        // Verifica se a agência existe no banco
         $sql_verifica_agencia = "SELECT * FROM agencias WHERE numero = ?";
-        $stmt_verifica_agencia = $conn->prepare($sql_verifica_agencia);
+        $stmt_verifica_agencia = $conexao->prepare($sql_verifica_agencia);
         $stmt_verifica_agencia->bind_param("i", $numero_agencia);
         $stmt_verifica_agencia->execute();
         $result_agencia = $stmt_verifica_agencia->get_result();
 
         if ($result_agencia->num_rows > 0) {
-            // Verifica se existem contas associadas a essa agência
-            $sql_verifica_contas = "SELECT * FROM contas WHERE agencia_id = ?";
-            $stmt_verifica_contas = $conn->prepare($sql_verifica_contas);
+            $sql_verifica_contas = "SELECT * FROM contas WHERE agencia_id = (SELECT id FROM agencias WHERE numero = ?)";
+            $stmt_verifica_contas = $conexao->prepare($sql_verifica_contas);
             $stmt_verifica_contas->bind_param("i", $numero_agencia);
             $stmt_verifica_contas->execute();
             $result_contas = $stmt_verifica_contas->get_result();
 
             if ($result_contas->num_rows > 0) {
-                // Se houver contas associadas, exibe uma mensagem informando o problema
                 $mensagem = "Não é possível excluir a agência de número $numero_agencia porque existem contas associadas a ela.";
             } else {
-                // Caso não haja contas associadas, procede com a exclusão da agência
-                $sql_excluir = "DELETE FROM agencias WHERE numero = ?";
-                $stmt_excluir = $conn->prepare($sql_excluir);
-                $stmt_excluir->bind_param("i", $numero_agencia);
+                try {
+                    $sql_excluir = "DELETE FROM agencias WHERE numero = ?";
+                    $stmt_excluir = $conexao->prepare($sql_excluir);
+                    $stmt_excluir->bind_param("i", $numero_agencia);
 
-                if ($stmt_excluir->execute()) {
-                    $mensagem = "Agência de número $numero_agencia excluída com sucesso!";
-                } else {
-                    $mensagem = "Erro ao excluir a agência: " . $conn->error;
+                    if ($stmt_excluir->execute()) {
+                        $mensagem = "Agência de número $numero_agencia excluída com sucesso!";
+                    }
+                } catch (mysqli_sql_exception $e) {
+                    if (strpos($e->getMessage(), 'a foreign key constraint fails') !== false) {
+                        $mensagem = "Não é possível excluir a agência de número $numero_agencia porque existem contas associadas a ela.";
+                    } else {
+                        $mensagem = "Erro ao excluir a agência: " . $e->getMessage();
+                    }
                 }
-
-                $stmt_excluir->close();
             }
 
             $stmt_verifica_contas->close();
@@ -53,6 +50,8 @@ if (isset($_GET['numero_agencia'])) {
         $mensagem = "Número da agência inválido.";
     }
 }
+
+
 ?>
 
 <!DOCTYPE html>

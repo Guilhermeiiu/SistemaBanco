@@ -1,14 +1,11 @@
 <?php
-// Inclui a conexão com o banco de dados
 include 'db/conexao.php';
 
-// Consulta para buscar todas as contas junto com o nome da agência
-$sql = "SELECT contas.numero AS numero_conta, contas.cliente_nome,contas.cliente_cpf,contas.saldo,
-agencias.nome AS nome_agencia
+$sql = "SELECT contas.numero AS numero_conta, contas.cliente_nome,contas.cliente_cpf,contas.saldo,agencias.nome AS nome_agencia
     FROM contas
     JOIN agencias ON contas.agencia_id = agencias.id
     ORDER BY contas.numero ASC";
-$resultados = $conn->query($sql);
+$resultados = $conexao->query($sql);
 ?>
 
 <!DOCTYPE html>

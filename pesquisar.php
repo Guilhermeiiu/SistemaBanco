@@ -1,19 +1,14 @@
 <?php
-// Inclui a conexão com o banco de dados
 include 'db/conexao.php';
 
-// Inicializa variáveis para resultados e mensagens
 $resultados = [];
 $mensagem = '';
 
-// Verifica se o formulário foi enviado
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $criterio = filter_input(INPUT_POST, 'criterio', FILTER_SANITIZE_SPECIAL_CHARS);
     $valor = filter_input(INPUT_POST, 'valor', FILTER_SANITIZE_SPECIAL_CHARS);
 
-    // Validação básica
     if ($criterio && $valor) {
-        // Define a consulta SQL com base no critério selecionado
         if ($criterio === 'nome') {
             $sql = "SELECT * FROM contas WHERE cliente_nome LIKE ?";
             $param = "%" . $valor . "%";
@@ -22,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $param = $valor;
         }
 
-        $stmt = $conn->prepare($sql);
+        $stmt = $conexao->prepare($sql);
         $stmt->bind_param("s", $param);
         $stmt->execute();
         $resultados = $stmt->get_result();

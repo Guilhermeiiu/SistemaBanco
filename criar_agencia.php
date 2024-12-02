@@ -1,27 +1,22 @@
 <?php
-// Inclui a conexão com o banco de dados
 include 'db/conexao.php';
 
-// Inicializa variáveis para mensagens
 $mensagem = '';
 
-// Verifica se o formulário foi enviado
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nome = filter_input(INPUT_POST, 'nome', FILTER_SANITIZE_SPECIAL_CHARS);
     $numero = filter_input(INPUT_POST, 'numero', FILTER_VALIDATE_INT);
     $endereco = filter_input(INPUT_POST, 'endereco', FILTER_SANITIZE_SPECIAL_CHARS);
 
-    // Validação básica dos campos
-    if ($nome && $numero && $endereco) {
-        // Insere os dados no banco de dados
+    if ($nome && $numero && $endereco) {                      #evitar SQL Injection
         $sql = "INSERT INTO agencias (nome, numero, endereco) VALUES (?, ?, ?)";
-        $stmt = $conn->prepare($sql);
+        $stmt = $conexao->prepare($sql);
         $stmt->bind_param("sis", $nome, $numero, $endereco);
 
         if ($stmt->execute()) {
             $mensagem = "Agência criada com sucesso!";
         } else {
-            $mensagem = "Erro ao criar a agência: " . $conn->error;
+            $mensagem = "Erro ao criar a agência: " . $conexao->error;
         }
 
         $stmt->close();

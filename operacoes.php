@@ -1,21 +1,16 @@
 <?php
-// Inclui a conexão com o banco de dados
 include 'db/conexao.php';
 
-// Inicializa variáveis para mensagens
 $mensagem = '';
 
-// Verifica se o formulário foi enviado
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $tipo = filter_input(INPUT_POST, 'tipo', FILTER_SANITIZE_SPECIAL_CHARS);
     $numero_conta = filter_input(INPUT_POST, 'numero_conta', FILTER_VALIDATE_INT);
     $valor = filter_input(INPUT_POST, 'valor', FILTER_VALIDATE_FLOAT);
 
-    // Validações básicas
     if ($tipo && $numero_conta && $valor > 0) {
-        // Busca a conta no banco de dados
         $sql_busca = "SELECT saldo FROM contas WHERE numero = ?";
-        $stmt_busca = $conn->prepare($sql_busca);
+        $stmt_busca = $conexao->prepare($sql_busca);
         $stmt_busca->bind_param("i", $numero_conta);
         $stmt_busca->execute();
         $resultado = $stmt_busca->get_result();
@@ -25,11 +20,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $saldo_atual = $conta['saldo'];
 
             if ($tipo === 'deposito') {
-                // Realiza o depósito
                 $novo_saldo = $saldo_atual + $valor;
 
                 $sql_update = "UPDATE contas SET saldo = ? WHERE numero = ?";
-                $stmt_update = $conn->prepare($sql_update);
+                $stmt_update = $conexao->prepare($sql_update);
                 $stmt_update->bind_param("di", $novo_saldo, $numero_conta);
 
                 if ($stmt_update->execute()) {
@@ -40,12 +34,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt_update->close();
 
             } elseif ($tipo === 'saque') {
-                // Valida se há saldo suficiente para o saque
                 if ($saldo_atual >= $valor) {
                     $novo_saldo = $saldo_atual - $valor;
 
                     $sql_update = "UPDATE contas SET saldo = ? WHERE numero = ?";
-                    $stmt_update = $conn->prepare($sql_update);
+                    $stmt_update = $conexao->prepare($sql_update);
                     $stmt_update->bind_param("di", $novo_saldo, $numero_conta);
 
                     if ($stmt_update->execute()) {

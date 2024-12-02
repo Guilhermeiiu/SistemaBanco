@@ -1,35 +1,29 @@
 <?php
-// Inclui a conexão com o banco de dados
 include 'db/conexao.php';
 
-// Inicializa variáveis para mensagens
 $mensagem = '';
 
-// Verifica se o formulário foi enviado
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cliente_nome = filter_input(INPUT_POST, 'cliente_nome', FILTER_SANITIZE_SPECIAL_CHARS);
     $cliente_cpf = filter_input(INPUT_POST, 'cliente_cpf', FILTER_SANITIZE_SPECIAL_CHARS);
     $cliente_endereco = filter_input(INPUT_POST, 'cliente_endereco', FILTER_SANITIZE_SPECIAL_CHARS);
     $agencia_id = filter_input(INPUT_POST, 'agencia_id', FILTER_VALIDATE_INT);
 
-    // Validação básica dos campos
     if ($cliente_nome && $cliente_cpf && $cliente_endereco && $agencia_id) {
-        // Gera automaticamente o número da conta
         $sql_numero_conta = "SELECT MAX(numero) AS max_numero FROM contas";
-        $result = $conn->query($sql_numero_conta);
+        $result = $conexao->query($sql_numero_conta);
         $max_numero = $result->fetch_assoc()['max_numero'] ?? 0;
         $novo_numero = $max_numero + 1;
 
-        // Insere os dados no banco de dados
         $sql = "INSERT INTO contas (numero, cliente_nome, cliente_cpf, cliente_endereco, agencia_id, saldo)
                 VALUES (?, ?, ?, ?, ?, 0)";
-        $stmt = $conn->prepare($sql);
+        $stmt = $conexao->prepare($sql);
         $stmt->bind_param("isssi", $novo_numero, $cliente_nome, $cliente_cpf, $cliente_endereco, $agencia_id);
 
         if ($stmt->execute()) {
             $mensagem = "Conta criada com sucesso! Número da conta: $novo_numero";
         } else {
-            $mensagem = "Erro ao criar a conta: " . $conn->error;
+            $mensagem = "Erro ao criar a conta: " . $conexao->error;
         }
 
         $stmt->close();
@@ -38,9 +32,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Busca as agências existentes para o dropdown
 $sql_agencias = "SELECT id, nome FROM agencias";
-$agencias = $conn->query($sql_agencias);
+$agencias = $conexao->query($sql_agencias);
 ?>
 
 <!DOCTYPE html>
